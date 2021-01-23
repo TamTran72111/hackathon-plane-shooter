@@ -29,7 +29,12 @@ User.signUp = async (username, password) => {
 
 User.login = async (username, password) => {
   const user = await User.findOne({ username });
-  return await bcrypt.compare(password, user.password);
+  if (user) {
+    console.log(user);
+
+    return await bcrypt.compare(password, user.password);
+  }
+  throw { message: 'Username not found' };
 };
 
 module.exports = User;
