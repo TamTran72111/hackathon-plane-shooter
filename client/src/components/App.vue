@@ -1,17 +1,21 @@
 <template>
-  <Map />
+  <Sky />
 </template>
 
 <script>
-import Map from "./Map";
+import Sky from "./Sky";
 
 export default {
   name: "App",
   components: {
-    Map,
+    Sky,
   },
 };
 </script>
 
 <style>
+* {
+  margin: 0;
+  padding: 0;
+}
 </style>
