@@ -1,14 +1,17 @@
 <template>
   <Sky />
+  <PlanePicker />
 </template>
 
 <script>
 import Sky from "./Sky";
+import PlanePicker from "./PlanePicker";
 
 export default {
   name: "App",
   components: {
     Sky,
+    PlanePicker,
   },
 };
 </script>

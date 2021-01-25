@@ -6,6 +6,8 @@ export default {
   state() {
     return {
       sky: [],
+      planeDirectionIndex: 0,
+      mode: 'PICKING',
     };
   },
   getters,

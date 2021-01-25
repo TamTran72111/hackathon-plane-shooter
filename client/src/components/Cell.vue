@@ -17,7 +17,9 @@ export default {
     });
 
     const shoot = () => {
-      store.dispatch("shoot", { row: props.row, col: props.col });
+      if (status.value == "") {
+        store.dispatch("clickCell", { row: props.row, col: props.col });
+      }
     };
 
     return {
@@ -32,8 +34,8 @@ export default {
 .cell {
   border-bottom: 1px solid black;
   border-right: 1px solid black;
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
 }
 
 .cell > div {
