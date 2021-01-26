@@ -12,6 +12,18 @@ app.use(bodyParser.json());
 const userRouter = require('./routes/user');
 app.use('/', userRouter);
 
+const http = require('http').Server(app);
+const io = require('socket.io')(http, {
+  cors: {
+    origin: 'http://localhost:8080',
+    methods: ['GET', 'POST'],
+  },
+});
+
+const { socketSetup, socketAuthenticate } = require('./game/socket');
+io.use(socketAuthenticate);
+io.on('connection', socketSetup);
+
 const PORT = process.env.PORT || 3000;
 const DBURL = process.env.DBURL || '';
 
@@ -19,7 +31,7 @@ mongoose
   .connect(DBURL, { useNewUrlParser: true })
   .then(() => {
     console.log('Database is connected');
-    app.listen(PORT, () => {
+    http.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
   })
