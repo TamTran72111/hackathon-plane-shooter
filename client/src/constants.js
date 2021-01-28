@@ -32,12 +32,12 @@ export const MISS = 'miss';
 export const HEADSHOT = 'headshot';
 
 export const ENEMY_HIT_MESSAGE = 'Your plane got shot';
-export const YOUR_HIT_MESSAGE = 'You has succesffully shot the enemy plane';
+export const YOUR_HIT_MESSAGE = 'You have succesffully shot the enemy plane';
 export const ENEMY_HIT_COLOR = 'has-text-warning';
 export const YOUR_HIT_COLOR = 'has-text-success';
 
 export const ENEMY_MISS_MESSAGE = 'The enemy was failed to shoot your planes';
-export const YOUR_MISS_MESSAGE = "You're failed to shoot the enemy planes";
+export const YOUR_MISS_MESSAGE = "You've failed to shoot the enemy planes";
 export const MISS_COLOR = 'has-text-info';
 
 export const ENEMY_HEADSHOT_MESSAGE =
