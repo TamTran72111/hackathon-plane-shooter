@@ -31,9 +31,7 @@ class Sky {
   }
 
   shoot({ row, col }) {
-    console.log(this.sky);
     if (isValidPosition(row, col)) {
-      console.log('shot at', row, col, this.sky[row][col]);
       if (
         this.sky[row][col] === CELL_HIT ||
         this.sky[row][col] === CELL_MISS ||
