@@ -8,6 +8,7 @@ const {
   CELL_HEAD,
   CELL_HEADSHOT,
   PLANE_OFFSETS,
+  MAX_PLANES,
 } = require('./constant');
 
 const isValidIndex = (index) => index >= 0 && index < SKY_SIZE;
@@ -30,13 +31,21 @@ class Sky {
   }
 
   shoot({ row, col }) {
+    console.log(this.sky);
     if (isValidPosition(row, col)) {
-      if (this.sky[row][col] === CELL_HIT || this.sky[row][col] === CELL_MISS) {
+      console.log('shot at', row, col, this.sky[row][col]);
+      if (
+        this.sky[row][col] === CELL_HIT ||
+        this.sky[row][col] === CELL_MISS ||
+        this.sky[row][col] === CELL_HEADSHOT
+      ) {
         throw INVALID;
       } else {
         if (this.sky[row][col] === CELL_PLANE) {
+          this.sky[row][col] = CELL_HIT;
           return CELL_HIT;
         } else if (this.sky[row][col] === CELL_HEAD) {
+          this.sky[row][col] = CELL_HEADSHOT;
           this.alive -= 1;
 
           return CELL_HEADSHOT;
@@ -53,6 +62,9 @@ class Sky {
   }
 
   placePlane({ row, col, direction }) {
+    if (this.planes.length === 3) {
+      return false;
+    }
     const planePositions = PLANE_OFFSETS.map((offset) => {
       let rowOffset, colOffset;
       if (direction === 0) {
@@ -71,7 +83,7 @@ class Sky {
       return { row: row + rowOffset, col: col + colOffset };
     });
     const canPutPlane = planePositions.every(({ row, col }) => {
-      this.isCellAvailable(row, col);
+      return this.isCellAvailable(row, col);
     });
     if (canPutPlane) {
       planePositions.forEach(({ row, col }) => {

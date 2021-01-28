@@ -11,11 +11,15 @@ app.use(bodyParser.json());
 
 const userRouter = require('./routes/user');
 app.use('/', userRouter);
+// This endpoint helps client to wake up the heroku server to increase user experience
+app.get('/wakeup', (_req, res) => {
+  res.status(204).json();
+});
 
 const http = require('http').Server(app);
 const io = require('socket.io')(http, {
   cors: {
-    origin: 'http://localhost:8080',
+    origin: ['http://localhost:8080'],
     methods: ['GET', 'POST'],
   },
 });

@@ -8,11 +8,15 @@ class Player {
     this.socket = socket;
     this.status = ONLINE;
     this.sky = null;
+    this.game = null;
   }
 
   createGame() {
-    this.game = new Game(this);
-    return this.game;
+    if (this.game === null) {
+      this.game = new Game(this);
+      return this.game;
+    }
+    return null;
   }
 
   joinGame(game) {
@@ -22,10 +26,29 @@ class Player {
   leaveGame() {
     let gameId = null;
     if (this.game) {
-      gameId = this.game.leave();
+      gameId = this.game.leave(this);
     }
     this.game = null;
     return gameId;
+  }
+
+  kick() {
+    if (this.game) {
+      return this.game.kick(this);
+    }
+    return false;
+  }
+
+  notifyJoinGame(payload) {
+    this.socket.emit('notifyJoinGame', payload);
+  }
+
+  notifyLeaveGame() {
+    this.socket.emit('notifyLeaveGame');
+  }
+
+  notifyLeftGame() {
+    this.socket.emit('leftGame');
   }
 
   start() {
@@ -46,6 +69,8 @@ class Player {
   choosePlanePosition(payload) {
     if (this.sky.placePlane(payload) === false) {
       this.socket.emit('invalidPlanePosition');
+    } else {
+      this.socket.emit('placePlane', payload);
     }
     if (this.sky.planes.length === 3) {
       this.status = READY;
@@ -64,7 +89,7 @@ class Player {
   shootAt(position) {
     try {
       const result = this.game.shoot(this, position);
-      this.socket.emit('shootResult', result);
+      this.socket.emit('shootResult', { ...position, result });
     } catch (error) {
       if (error === INVALID) {
         this.socket.emit('invalidShootingPosition');
@@ -74,7 +99,7 @@ class Player {
 
   beShotAt(position) {
     const result = this.sky.shoot(position);
-    this.socket.emit('beShotResult', result);
+    this.socket.emit('beShotResult', { ...position, result });
     return result;
   }
 

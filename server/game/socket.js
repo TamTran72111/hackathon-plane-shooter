@@ -1,4 +1,5 @@
 const Player = require('./player');
+const jwt = require('jsonwebtoken');
 
 let gameIds = [];
 const games = {};
@@ -6,19 +7,35 @@ const games = {};
 const socketSetup = (socket) => {
   const player = new Player(socket.username, socket);
   socket.player = player;
+  console.log(`${socket.username} is connected via web-socket`);
 
   socket.on('createGame', () => {
     const game = socket.player.createGame();
-    games[game.id] = game;
-    gameIds.push(game.id);
-    socket.game = game;
-    socket.emit('listGame', gameIds);
+    if (game) {
+      games[game.id] = game;
+      gameIds.push({ id: game.id, host: game.host.username, guest: null });
+      socket.game = game;
+      socket.emit('createdGame', {
+        id: game.id,
+        host: game.host.username,
+        guest: null,
+      });
+      socket.broadcast.emit('listGame', gameIds);
+    }
   });
 
   socket.on('joinGame', (gameId) => {
     if (games[gameId] !== undefined) {
       socket.game = games[gameId];
-      games[gameId].join(socket.player);
+      if (games[gameId].join(socket.player)) {
+        gameIds = gameIds.map((game) => {
+          if (game.id === gameId) {
+            game.guest = socket.player.username;
+          }
+          return game;
+        });
+      }
+      socket.broadcast.emit('listGame', gameIds);
     }
   });
 
@@ -27,9 +44,16 @@ const socketSetup = (socket) => {
     if (gameId !== null) {
       games[gameId] = undefined;
       socket.game = null;
-      gameIds = gameIds.filter((id) => id !== gameId);
-      socket.emit('listGame', gameIds);
+      gameIds = gameIds.filter((game) => game.id !== gameId);
+    } else {
+      gameIds = gameIds.map((game) => {
+        if (game.guest === socket.player.username) {
+          game.guest = null;
+        }
+        return game;
+      });
     }
+    socket.broadcast.emit('listGame', gameIds);
   });
 
   socket.on('fetchGames', () => {
@@ -49,8 +73,26 @@ const socketSetup = (socket) => {
     socket.game.nextTurn();
   });
 
+  socket.on('kick', () => {
+    if (socket.player.kick()) {
+      const gameId = socket.player.game.id;
+      gameIds = gameIds.map((game) => {
+        if (game.id === gameId) {
+          game.guest = null;
+        }
+        return game;
+      });
+      socket.broadcast.emit('listGame', gameIds);
+    }
+  });
+
   socket.on('disconnect', () => {
     // For the sake of simplicity, clean everything when user is disconnected
+    if (socket.player.game) {
+      const game = socket.player.game;
+      games[game.id] = undefined;
+      gameIds = gameIds.filter((g) => g.id !== game.id);
+    }
     socket.player.disconnect();
   });
 };
@@ -60,7 +102,7 @@ const socketAuthenticate = (socket, next) => {
     jwt.verify(
       socket.handshake.query.token,
       process.env.TOKEN_SECRET,
-      (err, user) => {
+      function (err, user) {
         if (err) return next(new Error('Authentication error'));
         socket.username = user.username;
         next();

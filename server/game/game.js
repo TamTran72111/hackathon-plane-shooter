@@ -1,5 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
-const { WAITING, INVALID } = require('./constant');
+const { WAITING, INVALID, PLAYING } = require('./constant');
 
 class Game {
   constructor(host) {
@@ -11,19 +11,28 @@ class Game {
   }
 
   join(player) {
-    if (this.oponent) {
+    if (this.oponent || this.host.username === player.username) {
       return false;
     }
     this.oponent = player;
     player.game = this;
+    const notifyPayload = {
+      id: this.id,
+      host: this.host.username,
+      guest: player.username,
+    };
+    this.host.notifyJoinGame(notifyPayload);
+    player.notifyJoinGame(notifyPayload);
     return true;
   }
 
   leave(player) {
     if (this.oponent && player.username === this.oponent.username) {
       this.oponent = null;
+      this.host.notifyLeaveGame();
+      player.notifyLeftGame();
     } else if (this.host.username == player.username) {
-      this.oponent.leaveGame();
+      if (this.oponent) this.oponent.leaveGame();
       return this.id;
     }
     return null;
@@ -33,9 +42,20 @@ class Game {
     if (player.username === this.host.username && this.oponent) {
       this.host.status = PLAYING;
       this.oponent.status = PLAYING;
+      this.gameStatus = PLAYING;
       this.host.choosePlanePositions();
       this.oponent.choosePlanePositions();
       return true;
+    }
+    return false;
+  }
+
+  kick(player) {
+    if (this.host.username === player?.username) {
+      if (this.oponent) {
+        this.oponent.leaveGame();
+        return true;
+      }
     }
     return false;
   }
@@ -92,12 +112,14 @@ class Game {
   }
 
   disconnect(player) {
-    if (this.oponent.username === player.username) {
-      this.host.win();
-      this.oponent.lose();
-    } else if (this.host.username === player.username) {
-      this.host.lose();
-      this.oponent.win();
+    if (this.gameStatus === PLAYING && this.oponent) {
+      if (this.oponent?.username === player.username) {
+        this.host.win();
+        this.oponent.lose();
+      } else if (this.host?.username === player.username) {
+        this.host.lose();
+        this.oponent.win();
+      }
     }
     this.leave(player);
   }

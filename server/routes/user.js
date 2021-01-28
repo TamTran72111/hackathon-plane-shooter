@@ -14,16 +14,19 @@ router.post('/signup', async (req, res) => {
         req.body.username.toLowerCase(),
         req.body.password
       );
+      const token = generateToken(req.body.username);
       return res.status(201).json({
         message: `Successfully created username "${req.body.username}"`,
+        token,
       });
     } catch (error) {
-      console.log(error);
       if (error.code === 11000) {
         return res
           .status(400)
           .json({ error: { username: 'Username is already used' } });
       } else {
+        console.log(error);
+
         return res.status(500).json({ message: 'Internal Server Error' });
       }
     }
@@ -44,7 +47,6 @@ router.post('/login', async (req, res) => {
     try {
       const username = req.body.username.toLowerCase();
       const password = req.body.password;
-
       const isAuthenticated = await User.login(username, password);
       if (isAuthenticated) {
         const token = generateToken(username);
@@ -60,12 +62,12 @@ router.post('/login', async (req, res) => {
         });
       }
     } catch (error) {
-      console.log(error);
       if (error.message === 'Username not found') {
         return res
           .status(400)
           .json({ error: { username: 'Username not found' } });
       } else {
+        console.log(error);
         return res.status(500).json({ message: 'Internal Server Error' });
       }
     }
