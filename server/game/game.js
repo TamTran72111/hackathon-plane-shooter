@@ -51,7 +51,7 @@ class Game {
   }
 
   kick(player) {
-    if (this.host.username === player?.username) {
+    if (this.host.username === player.username) {
       if (this.oponent) {
         this.oponent.leaveGame();
         return true;
@@ -112,11 +112,11 @@ class Game {
   }
 
   disconnect(player) {
-    if (this.gameStatus === PLAYING && this.oponent) {
-      if (this.oponent?.username === player.username) {
+    if (this.gameStatus === PLAYING && this.oponent && player) {
+      if (this.oponent.username === player.username) {
         this.host.win();
         this.oponent.lose();
-      } else if (this.host?.username === player.username) {
+      } else if (this.host && this.host.username === player.username) {
         this.host.lose();
         this.oponent.win();
       }
